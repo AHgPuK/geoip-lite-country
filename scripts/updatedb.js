@@ -23,6 +23,10 @@ var utils = require('../lib/utils');
 var Address6 = require('ip-address').Address6;
 var Address4 = require('ip-address').Address4;
 
+var args = process.argv.slice(2);
+var license_key = args.find(function(arg) {
+	return arg.match(/^license_key=[a-zA-Z0-9]+/) !== null;
+});
 var dataPath = path.join(__dirname, '..', 'data');
 var tmpPath = path.join(__dirname, '..', 'tmp');
 var countryLookup = {};
@@ -30,7 +34,9 @@ var cityLookup = {};
 var databases = [
 	{
 		type: 'country',
-		url: 'https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip',
+		url: 'https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&suffix=zip&'+license_key,
+		checksum: 'https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&suffix=zip.md5&'+license_key,
+		fileName: 'GeoLite2-Country-CSV.zip',
 		src: [
 			'GeoLite2-Country-Locations-en.csv',
 			'GeoLite2-Country-Blocks-IPv4.csv',
@@ -44,7 +50,9 @@ var databases = [
 	},
 	{
 		type: 'city',
-		url: 'https://geolite.maxmind.com/download/geoip/database/GeoLite2-City-CSV.zip',
+		url: 'https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City-CSV&suffix=zip&'+license_key,
+		checksum: 'https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City-CSV&suffix=zip.md5&'+license_key,
+		fileName: 'GeoLite2-City-CSV.zip',
 		src: [
 			'GeoLite2-City-Locations-en.csv',
 			'GeoLite2-City-Blocks-IPv4.csv',
@@ -116,7 +124,7 @@ function CSVtoArray(text) {
 function fetch(database, cb) {
 
 	var downloadUrl = database.url;
-	var fileName = downloadUrl.split('/').pop();
+	var fileName = database.fileName;
 	var gzip = path.extname(fileName) === '.gz';
 
 	if (gzip) {
