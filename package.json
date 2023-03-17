@@ -36,18 +36,18 @@
 	"dependencies": {
 		"async": "^3.2.2",
 		"colors": "^1.3.3",
-		"glob": "^7.2.0",
+		"glob": "^9.0.0",
 		"iconv-lite": "^0.6.3",
 		"ip-address": "^8.1.0",
 		"lazy": "^1.0.11",
-		"rimraf": "^3.0.2",
+		"rimraf": "^4.0.0",
 		"yauzl": "^2.10.0"
 	},
 	"config": {
 		"update": true
 	},
 	"devDependencies": {
-		"nodeunit-x": "^0.15.0"
+		"nodeunit-x": "^0.16.0"
 	},
 	"license": "Apache-2.0"
 }
