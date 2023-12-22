@@ -38,7 +38,7 @@
 		"colors": "1.4.0",
 		"glob": "^10.2.6",
 		"iconv-lite": "^0.6.3",
-		"ip-address": "^8.1.0",
+		"ip-address": "^9.0.5",
 		"lazy": "^1.0.11",
 		"rimraf": "^5.0.1",
 		"yauzl": "^2.10.0"
