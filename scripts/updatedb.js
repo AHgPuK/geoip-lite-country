@@ -2,13 +2,14 @@
 
 'use strict';
 
-var user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.36 Safari/537.36';
+var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0';
 
 var fs = require('fs');
 var https = require('https');
 var path = require('path');
 var url = require('url');
 var zlib = require('zlib');
+const { Readable } = require('stream');
 
 fs.existsSync = fs.existsSync || path.existsSync;
 
@@ -121,7 +122,7 @@ function CSVtoArray(text) {
 };
 
 
-function fetch(database, cb) {
+const fetcher = function (database, cb) {
 
 	var downloadUrl = database.url;
 	var fileName = database.fileName;
@@ -160,11 +161,11 @@ function fetch(database, cb) {
 	}
 
 	function onResponse(response) {
-		var status = response.statusCode;
+		var status = response.status;
 
 		if (status !== 200) {
-			console.log('ERROR'.red + ': HTTP Request Failed [%d %s]', status, https.STATUS_CODES[status]);
-			client.abort();
+			console.log('ERROR'.red + ': HTTP Request Failed [%d %s]', status, require('http').STATUS_CODES[status]);
+			// client.abort();
 			process.exit();
 		}
 
@@ -172,9 +173,11 @@ function fetch(database, cb) {
 		var tmpFileStream = fs.createWriteStream(tmpFile);
 
 		if (gzip) {
-			tmpFilePipe = response.pipe(zlib.createGunzip()).pipe(tmpFileStream);
+			tmpFilePipe = Readable.fromWeb( response.body ).pipe(zlib.createGunzip()).pipe(tmpFileStream);
+			// tmpFilePipe = response.pipe(zlib.createGunzip()).pipe(tmpFileStream);
 		} else {
-			tmpFilePipe = response.pipe(tmpFileStream);
+			tmpFilePipe = Readable.fromWeb( response.body ).pipe(tmpFileStream);
+			// tmpFilePipe = response.pipe(tmpFileStream);
 		}
 
 		tmpFilePipe.on('close', function() {
@@ -185,9 +188,21 @@ function fetch(database, cb) {
 
 	mkdir(tmpFile);
 
-	var client = https.get(getOptions(), onResponse);
+	// var client = https.get(getOptions(), onResponse);
 
 	process.stdout.write('Retrieving ' + fileName + ' ...');
+
+	fetch(downloadUrl, {
+		headers: {
+			'User-Agent': user_agent,
+		}
+	})
+	.then(response => {
+		onResponse(response);
+	})
+	.catch(err => {
+		console.log('ERROR'.red + ': ' + err.message);
+	})
 }
 
 function extract(tmpFile, tmpFileName, database, cb) {
@@ -577,7 +592,7 @@ mkdir(tmpPath);
 
 async.eachSeries(databases, function(database, nextDatabase) {
 	if (database.type.indexOf('city') !== -1) return;
-	async.seq(fetch, extract, processData)(database, nextDatabase);
+	async.seq(fetcher, extract, processData)(database, nextDatabase);
 
 }, function(err) {
 	if (err) {
